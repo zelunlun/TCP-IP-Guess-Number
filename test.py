@@ -42,5 +42,8 @@
 #     # if i <= 10:
 #     #     print(f"時間快到嘍，還剩下 {i} 秒")
 
-dict_ = {"A":1, "B":2}
-print(len(dict_.keys()))
+import json
+dict_ = '{"A":1, "B":2}'
+print(type(dict_))
+dict_ = json.loads(dict_)
+print(type(dict_))

@@ -1,16 +1,21 @@
 import socket
 import threading
 import time
+import json
 
 class ChatClient:
     def __init__(self) -> None:
         self.addr = ('192.168.115.1', 5050)
-        self.recv_fromserver = {"text":None, }
+        self.recv_fromserver = {"text":None ,"state":None}
         self.FORMAT = "utf-8"
     def connect(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect(self.addr)
 
+        recv = threading.Thread(target=self.recv_msg, args=(sock,))
+        recv.start()
+        
+        # 傳送資料給 Server
         print("send 連接成功！現在可以發送消息！\n")
         while True:
             if self.recv_fromserver["text"] == "超過了":
@@ -21,28 +26,37 @@ class ChatClient:
                 print("你退出了聊天")
                 sock.close()
                 break
-            recv = threading.Thread(target=self.recv_msg, args=(sock,))
-            recv.start()
 
             sock.send(client_send_msg.encode("utf-8")) # self.FORMAT
 
-    def recv_msg(self):
+    # 拿到Server的資料
+    def recv_msg(self,sock):
         print("recv連接成功!現在可以接收消息！\n")
         while True:
             try: 
-                recv_fromserver = self.sock.recv(1024)
+                recv_fromserver = sock.recv(1024)
                 recv_fromserver = recv_fromserver.decode("utf-8")
                 self.update_response(recv_fromserver)
                 
             except ConnectionResetError:
                 print("服務器關閉，聊天已結束！")
-                self.sock.close()
+                sock.close()
             if self.recv_fromserver == "超過了":
                 break
             print(recv_fromserver)
         # if response == "開始遊戲":
         #     threading.Thread(target=countdown).start()
-        
+    def recv_until(self, sock,suffix):
+        message = sock.recv(4096)
+        if not message:
+            raise EOFError('socket closed')
+        while not message.endswith(suffix):
+            data = sock.recv(4096)
+            if not data:
+                raise IOError(f'received {message} then socket closed')
+            message += data
+        return message.decode("utf-8")
+
     def update_response(self,recv_fromserver):
         self.recv_fromserver = recv_fromserver
         return self.recv_fromserver

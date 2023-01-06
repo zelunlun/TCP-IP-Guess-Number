@@ -45,6 +45,7 @@ class ChatSever:
             else:
                 for client in self.users.values():
                     client.sendall(f"開始遊戲".encode(self.FORMAT))
+                    client.sendall('{"text":None }'.encode(self.FORMAT))
                 threading.Thread(target=self.recv_send, args=(s, addr)).start()
         
     def recv_send(self, sock, addr):
