@@ -1,6 +1,5 @@
 import threading
 import socket
-
 import time
 
 
@@ -75,13 +74,6 @@ class ChatSever:
                 for client in self.users.values():
                     client.sendall(f"用戶{addr}已經退出聊天！".encode(self.FORMAT))
     
-    
-    # def exit_game(self, server_send_msg, addr):
-    #     if server_send_msg == "esc":
-    #         print(f"用戶{addr}已經退出聊天！")
-    #         self.users.pop(addr)
-    #         for client in self.users.values():
-    #             client.sendall(f"用戶{addr}已經退出聊天！".encode(self.FORMAT))
             
     def broadcast(self, client, server_send_msg):
         for client in self.users.values():
@@ -92,15 +84,6 @@ class ChatSever:
         for client in self.users.values():
             client.close()
         sock.close()
-    
-    def countdown(self,sock):
-        t = 30
-        while t:
-            # mins, secs = divmod(t, 60)
-            timer = f"00:{t}"
-            sock.sendall
-            time.sleep(1)
-            t -= 1
 
     def count_client(self):
         self.__count_client = len(self.users.keys())

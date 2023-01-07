@@ -36,6 +36,7 @@ class ChatClient:
                 server_response = sock.recv(1024)
                 server_response = server_response.decode("utf-8")
                 self.update_response(server_response)
+                print(server_response)
                 # print(f"recv 的 response 是 {self.server_response}")
 
             except ConnectionResetError:
@@ -45,31 +46,44 @@ class ChatClient:
             if self.server_response == "超過了":
                 sock.close()
                 break
-            print(server_response)
-        # if response == "開始遊戲":
-        #     threading.Thread(target=countdown).start()    
-    
+        
+            # 開始遊戲從這裡 ↓
+            elif self.server_response == "開始遊戲":
+                self.turn_based()
+                pass
 
     def update_response(self,server_response):
         self.server_response = server_response
         return self.server_response
         
-    def countdown():
-        t = 30
-        while t:
-            # mins, secs = divmod(t, 60)
+    def turn_based(self):
+        for round in range(1,6):
+            round_time = 0
+            print(f"現在是第 {round} 回合")
+            self.Gamestart()
             
-            timer = f"00:{t}"
-            print(timer, end="\r")
+        
+        # t = 30
+        # while t:
+        #     # mins, secs = divmod(t, 60)
+            
+        #     timer = f"00:{t}"
+        #     print(timer, end="\r")
+        #     time.sleep(1)
+        #     t -= 1
+    def Gamestart(self, round_time, client_send_msg):
+        while True:
+            if round_time == 30:
+                break
+            elif client_send_msg != None:
+                break
             time.sleep(1)
-            t -= 1
+            round_time += 1
+
 
 
 
 if __name__ == "__main__":
     client = ChatClient()
     client.connect()
-
-
-            # ↓為什麼這邊是這樣寫↓
 
