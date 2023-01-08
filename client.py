@@ -1,6 +1,7 @@
 import socket
 import threading
 import time
+from Timeout import input_with_timeout 
 
 class ChatClient:
     def __init__(self) -> None:
@@ -21,13 +22,13 @@ class ChatClient:
                 print("遊戲已滿房")
                 sock.close()
                 break
-            client_send_msg = input()
-            if client_send_msg == "esc":
-                print("你退出了聊天")
-                sock.close()
-                break
-            else:
-                sock.sendall(client_send_msg.encode(self.FORMAT))
+            # client_send_msg = input()
+            # if client_send_msg == "esc":
+            #     print("你退出了聊天")
+            #     sock.close()
+            #     break
+            # else:
+            #     sock.sendall(client_send_msg.encode(self.FORMAT))
 
     def recv_msg(self,sock):
         print("recv連接成功!現在可以接收消息！\n")
@@ -50,7 +51,8 @@ class ChatClient:
             # 開始遊戲從這裡 ↓
             elif self.server_response == "開始遊戲":
                 self.turn_based()
-                pass
+                
+                sock.close()
 
     def update_response(self,server_response):
         self.server_response = server_response
@@ -61,25 +63,29 @@ class ChatClient:
             round_time = 0
             print(f"現在是第 {round} 回合")
             self.Gamestart()
+            # count_time = threading.Thread(target =(self.count_time), args=(round_time,))
+            # start = threading.Thread(target=(self.Gamestart), args=(round_time,))   # ,args=()
+            # start.setDaemon(True)
+            # start.start()
+            # count_time.start()
+        
             
         
-        # t = 30
-        # while t:
-        #     # mins, secs = divmod(t, 60)
-            
-        #     timer = f"00:{t}"
-        #     print(timer, end="\r")
-        #     time.sleep(1)
-        #     t -= 1
-    def Gamestart(self, round_time, client_send_msg):
+    def Gamestart(self):
         while True:
-            if round_time == 30:
-                break
-            elif client_send_msg != None:
-                break
-            time.sleep(1)
-            round_time += 1
-
+            ans = input_with_timeout("", 5)
+            return ans
+            # if round_time == 30:
+            #     break
+            # elif client_send_msg != None:
+            #     break
+    
+    # def count_time(self, round_time):
+    #     while True:
+    #         time.sleep(1)
+    #         round_time += 1
+    #         if round_time ==30:
+    #             break
 
 
 
@@ -87,3 +93,12 @@ if __name__ == "__main__":
     client = ChatClient()
     client.connect()
 
+
+    # t = 30
+    # while t:
+    #     # mins, secs = divmod(t, 60)
+        
+    #     timer = f"00:{t}"
+    #     print(timer, end="\r")
+    #     time.sleep(1)
+    #     t -= 1
