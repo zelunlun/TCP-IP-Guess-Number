@@ -9,7 +9,8 @@ class ChatSever:
         self.users = {}
         self.FORMAT = "utf-8"
         self.answer = "1234"
-        self.__count_client = 0
+        self.count_client_ = 0
+        self.client_ans = {}
 
     # def IstwoPlayer(self):
     #     print("正在等待玩家...")
@@ -31,6 +32,11 @@ class ChatSever:
 
     def accept_cont(self,sock):
         while True:
+            # b = 0
+            # if len(self.users.values()) == 0 and b == 1:
+            #     sock.close()
+            #     break
+
             s, addr = sock.accept()
             self.users[addr] = s
             number = len(self.users)
@@ -50,6 +56,7 @@ class ChatSever:
             else:
                 for client in self.users.values():
                     client.sendall(f"開始遊戲".encode(self.FORMAT))
+                    
         
     def recv_send(self, sock, addr):
         while True:
@@ -59,35 +66,53 @@ class ChatSever:
 
             try:  # 測試後發現，當用戶率先選擇退出時，這邊就會報ConnectionResetError
                 print("你好 recv")
-                print(self.users)
+                # print(self.users)
                 # Server接收消息
                 client_response = sock.recv(4096).decode(self.FORMAT)
+                print(type(client_response))
+                print(client_response)
+                if client_response.split("1")[0] == "Game":
+                    print("瑪瑪我在這")
+
+                    if sock not in self.client_ans:
+                        self.client_ans[sock] = client_response
+                    else:
+                        self.client_ans[sock] = client_response
+                    print(f"這是測試傳送答案 {self.client_ans}")
+
                 server_send_msg = f"用戶{addr}發來消息：{client_response}"
-                print(server_send_msg)
+                # print(server_send_msg)
+
+                # if len(self.users.keys()) == 0:
+                #     b = 1
+                #     sock.close()
+                #     break
 
                 # Server接收的消息傳給所有Client
-                for client in self.users.values():
-                    client.sendall(server_send_msg.encode(self.FORMAT))
+                sock.sendall(server_send_msg.encode(self.FORMAT))
+
+                # for client in self.users.values():
+                #     client.sendall(server_send_msg.encode(self.FORMAT))
             except ConnectionResetError:
                 print(f"用戶{addr}已經退出聊天！")
                 self.users.pop(addr)
                 for client in self.users.values():
                     client.sendall(f"用戶{addr}已經退出聊天！".encode(self.FORMAT))
-    
+                print(f"現在的遊戲室有 {self.users}")
             
-    def broadcast(self, client, server_send_msg):
-        for client in self.users.values():
-            client.sendall(server_send_msg.encode(self.FORMAT))
+    # def broadcast(self, client, server_send_msg):
+    #     for client in self.users.values():
+    #         client.sendall(server_send_msg.encode(self.FORMAT))
                 
                 
-    def close_sever(self,sock):
-        for client in self.users.values():
-            client.close()
-        sock.close()
+    # def close_sever(self,sock):
+    #     for client in self.users.values():
+    #         client.close()
+    #     sock.close()
 
-    def count_client(self):
-        self.__count_client = len(self.users.keys())
-        return self.__count_client
+    # def count_client(self):
+    #     self.count_client_ = len(self.users.keys())
+    #     return self.count_client_
 
 if __name__ == "__main__":
     sever = ChatSever()

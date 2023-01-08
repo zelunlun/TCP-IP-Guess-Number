@@ -107,7 +107,6 @@ def get_input(message, channel):
 
 def input_with_timeout(message, timeout):
     channel = queue.Queue()
-    message = message + f" [{timeout} sec timeout] "
     thread = threading.Thread(target=get_input, args=(message, channel))
     # by setting this as a daemon thread, python won't wait for it to complete
     thread.daemon = True
@@ -119,7 +118,7 @@ def input_with_timeout(message, timeout):
         return response
     except queue.Empty:
         pass
-    return None
+    return str(None)
 
 
 if __name__ == "__main__":

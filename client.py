@@ -34,8 +34,8 @@ class ChatClient:
         print("recv連接成功!現在可以接收消息！\n")
         while True:
             try: 
-                server_response = sock.recv(1024)
-                server_response = server_response.decode("utf-8")
+                server_response = sock.recv(4096)
+                server_response = server_response.decode(self.FORMAT)
                 self.update_response(server_response)
                 print(server_response)
                 # print(f"recv 的 response 是 {self.server_response}")
@@ -50,30 +50,46 @@ class ChatClient:
         
             # 開始遊戲從這裡 ↓
             elif self.server_response == "開始遊戲":
-                self.turn_based()
-                
+                print("3秒後遊戲開始...")
+                time.sleep(3)
+                self.turn_based(sock)
                 sock.close()
+                break
+                
 
     def update_response(self,server_response):
         self.server_response = server_response
         return self.server_response
         
-    def turn_based(self):
-        for round in range(1,6):
-            round_time = 0
-            print(f"現在是第 {round} 回合")
-            self.Gamestart()
-            # count_time = threading.Thread(target =(self.count_time), args=(round_time,))
-            # start = threading.Thread(target=(self.Gamestart), args=(round_time,))   # ,args=()
-            # start.setDaemon(True)
-            # start.start()
-            # count_time.start()
+    def turn_based(self,sock):
+        try:
+            for round in range(1,6):
+                round_time = 0
+                print(f"現在是第 {round} 回合", end="\n")
+                answer = self.Gamestart()
+                print(f"answer 是 {answer}, type 是 {type(answer)}")
+                special_ans = "Game1" + answer
+                if answer == "None" or answer == "":
+                    special_ans = "Game1None"
+
+                sock.sendall(special_ans.encode(self.FORMAT))
+                # count_time = threading.Thread(target =(self.count_time), args=(round_time,))
+                # start = threading.Thread(target=(self.Gamestart), args=(round_time,))   # ,args=()
+                # start.setDaemon(True)
+                # start.start()
+                # count_time.start()
+        except:
+            print("分數這邊錯誤")
+        
+            
+        
+
         
             
         
     def Gamestart(self):
         while True:
-            ans = input_with_timeout("", 5)
+            ans = input_with_timeout("", 1)
             return ans
             # if round_time == 30:
             #     break
