@@ -1,3 +1,35 @@
+import threading
+import queue
+
+
+def get_input(message, channel):
+    response = input(message)
+    channel.put(response)
+
+
+def input_with_timeout(message, timeout):
+    channel = queue.Queue()
+    thread = threading.Thread(target=get_input, args=(message, channel))
+    # by setting this as a daemon thread, python won't wait for it to complete
+    thread.daemon = True
+    thread.start()
+
+    try:
+        response = channel.get(True, timeout)
+        del channel
+        return response
+    except queue.Empty:
+        pass
+    return str(None)
+
+
+if __name__ == "__main__":
+    a = input_with_timeout("",2)
+    print(a)
+
+
+
+
 # # # # import the time module
 # # import time
   
@@ -93,35 +125,3 @@
 # start.start()
 # # count_time_.start()
 # # start.join()
-        
-
-import threading
-import queue
-import time
-
-
-def get_input(message, channel):
-    response = input(message)
-    channel.put(response)
-
-
-def input_with_timeout(message, timeout):
-    channel = queue.Queue()
-    thread = threading.Thread(target=get_input, args=(message, channel))
-    # by setting this as a daemon thread, python won't wait for it to complete
-    thread.daemon = True
-    thread.start()
-
-    try:
-        response = channel.get(True, timeout)
-        del channel
-        return response
-    except queue.Empty:
-        pass
-    return str(None)
-
-
-if __name__ == "__main__":
-    a = input_with_timeout("",2)
-    # time.sleep(3)
-    print(a)

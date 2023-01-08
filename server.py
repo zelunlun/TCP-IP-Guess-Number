@@ -10,7 +10,8 @@ class ChatSever:
         self.FORMAT = "utf-8"
         self.answer = "1234"
         self.count_client_ = 0
-        self.client_ans = {}
+        self.ans_list = []
+        # self.client_ans = {}
 
     # def IstwoPlayer(self):
     #     print("正在等待玩家...")
@@ -67,21 +68,7 @@ class ChatSever:
             try:  # 測試後發現，當用戶率先選擇退出時，這邊就會報ConnectionResetError
                 print("你好 recv")
                 # print(self.users)
-                # Server接收消息
-                client_response = sock.recv(4096).decode(self.FORMAT)
-                print(type(client_response))
-                print(client_response)
-                if client_response.split("1")[0] == "Game":
-                    print("瑪瑪我在這")
 
-                    if sock not in self.client_ans:
-                        self.client_ans[sock] = client_response
-                    else:
-                        self.client_ans[sock] = client_response
-                    print(f"這是測試傳送答案 {self.client_ans}")
-
-                server_send_msg = f"用戶{addr}發來消息：{client_response}"
-                # print(server_send_msg)
 
                 # if len(self.users.keys()) == 0:
                 #     b = 1
@@ -89,7 +76,9 @@ class ChatSever:
                 #     break
 
                 # Server接收的消息傳給所有Client
-                sock.sendall(server_send_msg.encode(self.FORMAT))
+                # server_send_msg = f"用戶{addr}發來消息：{client_response}"
+                # print(server_send_msg)
+                # sock.sendall(server_send_msg.encode(self.FORMAT))
 
                 # for client in self.users.values():
                 #     client.sendall(server_send_msg.encode(self.FORMAT))
@@ -100,6 +89,44 @@ class ChatSever:
                     client.sendall(f"用戶{addr}已經退出聊天！".encode(self.FORMAT))
                 print(f"現在的遊戲室有 {self.users}")
             
+            # Server接收消息
+            client_response = sock.recv(4096).decode(self.FORMAT)
+            
+            print(type(client_response))
+            print(client_response)
+            client_ans = {}
+            
+            # if client_response.split(",")[0] == "Game":
+                # print("瑪瑪我在這")
+                
+            answer = client_response.split(",")[1]
+            
+            self.ans_list.append(answer)
+            
+            print(f"這裡是ans_list {self.ans_list}")
+            if sock not in client_ans:
+                client_ans[sock] = client_response
+            """
+                上面會用到！！！！！！！！！！！！！！！！！！！！
+            """
+            
+            if len(self.ans_list) % 2 == 0:
+                print("False")
+                for client in self.users.values():
+                    client.sendall("都準備好了".encode(self.FORMAT))
+                
+                
+                
+            if len(self.ans_list) % 2 == 1:
+                print("True")
+                sock.sendall("已收到".encode(self.FORMAT))
+                
+
+
+                print(f"這是測試傳送答案 {client_ans[sock]}")
+
+
+
     # def broadcast(self, client, server_send_msg):
     #     for client in self.users.values():
     #         client.sendall(server_send_msg.encode(self.FORMAT))
