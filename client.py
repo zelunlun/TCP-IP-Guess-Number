@@ -74,14 +74,16 @@ class ChatClient:
 
                 sock.sendall(special_ans.encode(self.FORMAT))
                 
-                time.sleep(1)
+                
                 server_response = sock.recv(4096)
                 server_response = server_response.decode(self.FORMAT)
                 print(f"server_res 是 {server_response} ")
 
                 if server_response == "已收到":
+                    print("clientTEST")
                     self.round_player_waiting(sock)
                 elif server_response == "都準備好了":
+                    print(f"server_response是{server_response}")
                     continue
                 # count_time = threading.Thread(target =(self.count_time), args=(round_time,))
                 # start = threading.Thread(target=(self.Gamestart), args=(round_time,))   # ,args=()
@@ -99,7 +101,7 @@ class ChatClient:
         
     def Gamestart(self):
         while True:
-            ans = input_with_timeout("", 10)
+            ans = input_with_timeout("", 15)
             return ans
             # if round_time == 30:
             #     break
@@ -115,7 +117,6 @@ class ChatClient:
             print(f"ser {server_response}")
             if server_response == "都準備好了":
                 break
-
     # def count_time(self, round_time):
     #     while True:
     #         time.sleep(1)
@@ -128,13 +129,3 @@ class ChatClient:
 if __name__ == "__main__":
     client = ChatClient()
     client.connect()
-
-
-    # t = 30
-    # while t:
-    #     # mins, secs = divmod(t, 60)
-        
-    #     timer = f"00:{t}"
-    #     print(timer, end="\r")
-    #     time.sleep(1)
-    #     t -= 1

@@ -1,14 +1,15 @@
 import threading
 import socket
 import time
+from logstic_decision import logstic
 
-
-class ChatSever:
+class ChatSever(logstic):
     def __init__(self):
         self.addr = (socket.gethostbyname(socket.gethostname()), 5050)
+        super().__init__()
+        # self.addr = ("0.0.0.0", 5050)
         self.users = {}
         self.FORMAT = "utf-8"
-        self.answer = "1234"
         self.count_client_ = 0
         self.ans_list = []
         # self.client_ans = {}
@@ -100,7 +101,12 @@ class ChatSever:
                 # print("瑪瑪我在這")
                 
             answer = client_response.split(",")[1]
-            
+            try:
+                calculate = self.decision(answer)
+                print(f"這輪你的分數是 {calculate},")
+            except:
+                calculate = "0000"
+                sock.sendall("輸入有錯,".encode(self.FORMAT))
             self.ans_list.append(answer)
             
             print(f"這裡是ans_list {self.ans_list}")
@@ -111,10 +117,10 @@ class ChatSever:
             """
             
             if len(self.ans_list) % 2 == 0:
-                print("False")
+                
                 for client in self.users.values():
                     client.sendall("都準備好了".encode(self.FORMAT))
-                
+                    client.sendall(f"這輪你的分數是 {calculate}".encode(self.FORMAT))
                 
                 
             if len(self.ans_list) % 2 == 1:
