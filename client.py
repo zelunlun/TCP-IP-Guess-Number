@@ -8,38 +8,35 @@ class ChatClient:
         self.addr = ('192.168.115.1', 5050)
         self.server_response = ""
         self.FORMAT = "utf-8"
+        
     def connect(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.connect(self.addr)
         
-        recv = threading.Thread(target =(self.recv_msg), args =(sock,))
+        end = 0
+        recv = threading.Thread(target =(self.recv_msg), args =(sock,end))
         recv.start()
         
-        while True:
-            # print(f"send response 是 {self.server_response }")
-            if self.server_response == "超過了":
-                print("遊戲已滿房")
-                sock.close()
-                break
-            # client_send_msg = input()
-            # if client_send_msg == "esc":
-            #     print("你退出了聊天")
-            #     sock.close()
-            #     break
-            # else:
-            #     sock.sendall(client_send_msg.encode(self.FORMAT))
 
-    def recv_msg(self,sock):
+        if self.server_response == "超過了":
+            print("遊戲已滿房")
+            sock.close()
+            
+        if end == 1:
+            print("有收到")
+            sock.close()
+            
+    def recv_msg(self,sock,end):
         print("recv連接成功!現在可以接收消息！\n")
         while True:
             try: 
                 server_response = sock.recv(4096)
+                end = 1
                 server_response = server_response.decode(self.FORMAT)
                 self.update_response(server_response)
                 print(server_response)
-                # print(f"recv 的 response 是 {self.server_response}")
-
+                
             except ConnectionResetError:
                 print("服務器關閉，聊天已結束！")
                 sock.close()
@@ -53,6 +50,11 @@ class ChatClient:
                 print("3秒後遊戲開始...")
                 time.sleep(3)
                 self.turn_based(sock,server_response)
+                print("client遊戲結束")
+                recv = sock.recv(4096).decode(self.FORMAT)
+                print(recv)
+                end = 1
+                time.sleep(5)
                 sock.close()
                 break
                 
@@ -64,9 +66,10 @@ class ChatClient:
     def turn_based(self,sock,server_response):
         try:
             for round in range(1,6):
+                button = 0
                 round_time = 0
                 print(f"現在是第 {round} 回合", end="\n")
-                answer = self.Gamestart()
+                answer = input_with_timeout(7)
                 print(f"answer 是 {answer}, type 是 {type(answer)}")
                 special_ans = "Game," + answer
                 if answer == "None" or answer == "":
@@ -77,19 +80,24 @@ class ChatClient:
                 
                 server_response = sock.recv(4096)
                 server_response = server_response.decode(self.FORMAT)
-                print(f"server_res 是 {server_response} ")
+                
 
                 if server_response == "已收到":
                     print("clientTEST")
-                    self.round_player_waiting(sock)
-                elif server_response == "都準備好了":
-                    print(f"server_response是{server_response}")
-                    continue
-                # count_time = threading.Thread(target =(self.count_time), args=(round_time,))
-                # start = threading.Thread(target=(self.Gamestart), args=(round_time,))   # ,args=()
-                # start.setDaemon(True)
-                # start.start()
-                # count_time.start()
+                    button = 1
+                    first = self.round_player_waiting(sock)[2:6]
+                else:
+                    pass
+                if button == 0:
+
+                    after = server_response[10:14]
+                    print(f"這局的答案是 {after}, 這局共得 {self.calculate_score(after)}分")
+                    if round == 5:
+                        sock.send("遊戲結束".encode(self.FORMAT))
+                else:
+                    print(f"這局的答案是 {first}, 這局共得 {self.calculate_score(first)}分")
+                
+                continue
         except:
             print("分數這邊錯誤")
         
@@ -99,30 +107,20 @@ class ChatClient:
         
             
         
-    def Gamestart(self):
-        while True:
-            ans = input_with_timeout("", 15)
-            return ans
-            # if round_time == 30:
-            #     break
-            # elif client_send_msg != None:
-            #     break
     
     def round_player_waiting(self,sock):
         print("正在等待玩家...")
-        while True:
-            
-            server_response = sock.recv(4096)
-            server_response = server_response.decode(self.FORMAT)
-            print(f"ser {server_response}")
-            if server_response == "都準備好了":
-                break
-    # def count_time(self, round_time):
-    #     while True:
-    #         time.sleep(1)
-    #         round_time += 1
-    #         if round_time ==30:
-    #             break
+        # while True:
+        
+        server_response = sock.recv(4096)
+        server_response = server_response.decode(self.FORMAT)
+        return server_response
+
+    def calculate_score(self, calculate):
+        A_score = int(calculate[0]) * 3       # A是3分、B是1分
+        B_score = int(calculate[2])
+        return A_score+B_score
+    
 
 
 

@@ -1,30 +1,35 @@
 import threading
 import queue
+import sys
 
-
-def get_input(message, channel):
-    response = input(message)
+def get_input(channel):
+    response = input()
     channel.put(response)
 
 
-def input_with_timeout(message, timeout):
+def input_with_timeout(timeout):
     channel = queue.Queue()
-    thread = threading.Thread(target=get_input, args=(message, channel))
+    thread = threading.Thread(target=get_input, args=(channel,))
     # by setting this as a daemon thread, python won't wait for it to complete
     thread.daemon = True
     thread.start()
 
     try:
         response = channel.get(True, timeout)
-        del channel
+        # print(f"{response}, {type(response)}, channel = {channel}")
+        
         return response
     except queue.Empty:
+        # print(channel)
         pass
     return str(None)
+    
 
 
 if __name__ == "__main__":
-    a = input_with_timeout("",2)
+    
+
+    a = input_with_timeout(6)
     print(a)
 
 

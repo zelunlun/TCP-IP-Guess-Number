@@ -12,19 +12,16 @@ class ChatSever(logstic):
         self.FORMAT = "utf-8"
         self.count_client_ = 0
         self.ans_list = []
-        # self.client_ans = {}
-
-    # def IstwoPlayer(self):
-    #     print("正在等待玩家...")
-    #     while True:
-    #         if len(self.users.keys()) == 2:
-    #             self.accept_cont()
+        self.AB = []
+        self.total_scores = {}
+        self.compare_list = []
             
 
     def start_sever(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             sock.bind(self.addr)
+            
         except:
             print('Error!')    
         sock.listen(2)
@@ -34,10 +31,6 @@ class ChatSever(logstic):
 
     def accept_cont(self,sock):
         while True:
-            # b = 0
-            # if len(self.users.values()) == 0 and b == 1:
-            #     sock.close()
-            #     break
 
             s, addr = sock.accept()
             self.users[addr] = s
@@ -62,27 +55,13 @@ class ChatSever(logstic):
         
     def recv_send(self, sock, addr):
         while True:
+            round_count = 1
             # 當 超過兩人 break
             if len(self.users.values()) > 2:
                 break
 
-            try:  # 測試後發現，當用戶率先選擇退出時，這邊就會報ConnectionResetError
-                print("你好 recv")
-                # print(self.users)
-
-
-                # if len(self.users.keys()) == 0:
-                #     b = 1
-                #     sock.close()
-                #     break
-
-                # Server接收的消息傳給所有Client
-                # server_send_msg = f"用戶{addr}發來消息：{client_response}"
-                # print(server_send_msg)
-                # sock.sendall(server_send_msg.encode(self.FORMAT))
-
-                # for client in self.users.values():
-                #     client.sendall(server_send_msg.encode(self.FORMAT))
+            try:  
+                pass
             except ConnectionResetError:
                 print(f"用戶{addr}已經退出聊天！")
                 self.users.pop(addr)
@@ -91,62 +70,77 @@ class ChatSever(logstic):
                 print(f"現在的遊戲室有 {self.users}")
             
             # Server接收消息
+            client_ans = {}
             client_response = sock.recv(4096).decode(self.FORMAT)
             
-            print(type(client_response))
-            print(client_response)
-            client_ans = {}
             
-            # if client_response.split(",")[0] == "Game":
-                # print("瑪瑪我在這")
-                
-            answer = client_response.split(",")[1]
-            try:
-                calculate = self.decision(answer)
-                print(f"這輪你的分數是 {calculate},")
+
+            if client_response == "遊戲結束":
+                for i in sorted(self.total_scores.values()):
+                    self.compare_list.append(i)
+                    com_dict = {v : k for k, v in self.total_scores.items()}
+                    if len(self.compare_list) >= 2:
+                        if self.compare_list[0] == self.compare_list[1]:
+                            for client in self.users.values():
+                                client.send("雙方平手!".encode(self.FORMAT))
+                            sock.close()
+                            break
+                        else:
+                            for client in self.users.values():
+                                client.send(f"獲勝的是{com_dict[i]}".encode(self.FORMAT))
+                            sock.close()
+                            break
+            
+            
+            try :
+                answer = client_response.split(",")[1]              # 這是給的答案 (數字)
             except:
-                calculate = "0000"
-                sock.sendall("輸入有錯,".encode(self.FORMAT))
-            self.ans_list.append(answer)
+                print("遊戲結束")
+                break
             
-            print(f"這裡是ans_list {self.ans_list}")
+            try:
+                calculate = self.decision(answer)               # 算出幾A幾B   
+                round_score = self.calculate_score(calculate)   # 算出本輪分數
+                if sock not in self.total_scores:
+                    self.total_scores[sock] = round_score
+                else:
+                    self.total_scores[sock] += round_score
+                
+            except:
+                calculate = "0A0B"
+                sock.sendall("輸入有錯,".encode(self.FORMAT))
+            
+            self.ans_list.append(answer)                        # ans_list是用來判斷
+                                                                # 是否都準備  
             if sock not in client_ans:
                 client_ans[sock] = client_response
             """
                 上面會用到！！！！！！！！！！！！！！！！！！！！
             """
-            
+            self.AB.append(calculate)
+
             if len(self.ans_list) % 2 == 0:
                 
                 for client in self.users.values():
-                    client.sendall("都準備好了".encode(self.FORMAT))
-                    client.sendall(f"這輪你的分數是 {calculate}".encode(self.FORMAT))
+                    client.sendall(f"{self.AB}".encode(self.FORMAT))
                 
-                
+                    
+                    
+                self.AB.pop()
+                self.AB.pop()
             if len(self.ans_list) % 2 == 1:
-                print("True")
                 sock.sendall("已收到".encode(self.FORMAT))
+            
                 
+           
+
+    def calculate_score(self, calculate):
+        A_score = int(calculate[0]) * 3       # A是3分、B是1分
+        B_score = int(calculate[2])
+        return A_score+B_score
 
 
-                print(f"這是測試傳送答案 {client_ans[sock]}")
-
-
-
-    # def broadcast(self, client, server_send_msg):
-    #     for client in self.users.values():
-    #         client.sendall(server_send_msg.encode(self.FORMAT))
-                
-                
-    # def close_sever(self,sock):
-    #     for client in self.users.values():
-    #         client.close()
-    #     sock.close()
-
-    # def count_client(self):
-    #     self.count_client_ = len(self.users.keys())
-    #     return self.count_client_
-
+    
 if __name__ == "__main__":
     sever = ChatSever()
     sever.start_sever()

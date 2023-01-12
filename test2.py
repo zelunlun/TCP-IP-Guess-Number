@@ -14,6 +14,15 @@
 #     client = ChatClient()
 #     client.connect()
 
-a = "1234"
+# a = "1234"
 
-print([x for x in a])
+# print([x for x in a])
+
+a = {
+    "A":0, "B":2, "C":1
+}
+
+# for i in sorted(a.values()):
+#     print(i)
+
+print(a[0])
